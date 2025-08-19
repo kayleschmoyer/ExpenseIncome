@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useStore } from './store';
-import { buildTimeline } from './balance';
 
 function cents(value: number) {
   return (value / 100).toFixed(2);
 }
 
 export default function App() {
-  const { incomeSources, bills, misc, settings, load, addIncome, addBill, addMisc } = useStore();
+  const { incomeSources, bills, misc, load, addIncome, addBill, addMisc } = useStore();
 
   useEffect(() => {
     load();
@@ -25,69 +24,71 @@ export default function App() {
   const [miscAmount, setMiscAmount] = useState('');
   const [miscDate, setMiscDate] = useState('');
 
-  const timeline = settings ? buildTimeline(settings, incomeSources, bills, misc) : [];
-
   return (
-    <div className="p-4 space-y-6">
-      <h1 className="text-xl font-bold">Income & Expense Tracker</h1>
+    <div className="max-w-2xl mx-auto p-6 space-y-10 text-yellow-400">
+      <h1 className="text-3xl font-bold text-center">Elite Expense Tracker</h1>
 
-      <section>
-        <h2 className="font-semibold">Add Income</h2>
-        <div className="flex gap-2">
-          <input className="border p-1" placeholder="Name" value={incomeName} onChange={e => setIncomeName(e.target.value)} />
-          <input className="border p-1" placeholder="Amount" value={incomeAmount} onChange={e => setIncomeAmount(e.target.value)} />
-          <input className="border p-1" type="date" value={incomeDate} onChange={e => setIncomeDate(e.target.value)} />
-          <button className="bg-blue-500 text-white px-2" onClick={() => {
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Income</h2>
+        <div className="flex flex-wrap gap-2">
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded flex-1" placeholder="Name" value={incomeName} onChange={e => setIncomeName(e.target.value)} />
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded w-32" placeholder="Amount" value={incomeAmount} onChange={e => setIncomeAmount(e.target.value)} />
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded" type="date" value={incomeDate} onChange={e => setIncomeDate(e.target.value)} />
+          <button className="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400" onClick={() => {
             addIncome(incomeName, Math.round(parseFloat(incomeAmount) * 100), incomeDate);
             setIncomeName(''); setIncomeAmount(''); setIncomeDate('');
           }}>Add</button>
         </div>
+        <ul className="space-y-1">
+          {incomeSources.map(i => (
+            <li key={i.id} className="flex justify-between border-b border-yellow-700 pb-1">
+              <span>{i.name}</span>
+              <span>{cents(i.amountCents)}</span>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <section>
-        <h2 className="font-semibold">Add Bill</h2>
-        <div className="flex gap-2">
-          <input className="border p-1" placeholder="Name" value={billName} onChange={e => setBillName(e.target.value)} />
-          <input className="border p-1" placeholder="Amount" value={billAmount} onChange={e => setBillAmount(e.target.value)} />
-          <input className="border p-1" type="date" value={billDate} onChange={e => setBillDate(e.target.value)} />
-          <button className="bg-blue-500 text-white px-2" onClick={() => {
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Bills</h2>
+        <div className="flex flex-wrap gap-2">
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded flex-1" placeholder="Name" value={billName} onChange={e => setBillName(e.target.value)} />
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded w-32" placeholder="Amount" value={billAmount} onChange={e => setBillAmount(e.target.value)} />
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded" type="date" value={billDate} onChange={e => setBillDate(e.target.value)} />
+          <button className="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400" onClick={() => {
             addBill(billName, Math.round(parseFloat(billAmount) * 100), billDate);
             setBillName(''); setBillAmount(''); setBillDate('');
           }}>Add</button>
         </div>
+        <ul className="space-y-1">
+          {bills.map(b => (
+            <li key={b.id} className="flex justify-between border-b border-yellow-700 pb-1">
+              <span>{b.name}</span>
+              <span>{cents(b.amountCents)}</span>
+            </li>
+          ))}
+        </ul>
       </section>
 
-      <section>
-        <h2 className="font-semibold">Misc Spending</h2>
-        <div className="flex gap-2">
-          <input className="border p-1" placeholder="Description" value={miscDesc} onChange={e => setMiscDesc(e.target.value)} />
-          <input className="border p-1" placeholder="Amount" value={miscAmount} onChange={e => setMiscAmount(e.target.value)} />
-          <input className="border p-1" type="date" value={miscDate} onChange={e => setMiscDate(e.target.value)} />
-          <button className="bg-blue-500 text-white px-2" onClick={() => {
+      <section className="space-y-4">
+        <h2 className="text-xl font-semibold">Misc Spending</h2>
+        <div className="flex flex-wrap gap-2">
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded flex-1" placeholder="Description" value={miscDesc} onChange={e => setMiscDesc(e.target.value)} />
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded w-32" placeholder="Amount" value={miscAmount} onChange={e => setMiscAmount(e.target.value)} />
+          <input className="bg-black border border-yellow-500 text-yellow-400 p-2 rounded" type="date" value={miscDate} onChange={e => setMiscDate(e.target.value)} />
+          <button className="bg-yellow-500 text-black px-4 py-2 rounded hover:bg-yellow-400" onClick={() => {
             addMisc(miscDate, Math.round(parseFloat(miscAmount) * 100), miscDesc);
             setMiscDesc(''); setMiscAmount(''); setMiscDate('');
           }}>Add</button>
         </div>
-      </section>
-
-      <section>
-        <h2 className="font-semibold">Timeline</h2>
-        <table className="w-full text-left border">
-          <thead>
-            <tr className="border-b"><th className="p-1">Date</th><th className="p-1">Type</th><th className="p-1">Label</th><th className="p-1">Δ</th><th className="p-1">Balance</th></tr>
-          </thead>
-          <tbody>
-            {timeline.map((t) => (
-              <tr key={t.date + t.label} className="border-b">
-                <td className="p-1">{t.date}</td>
-                <td className="p-1">{t.kind}</td>
-                <td className="p-1">{t.label}</td>
-                <td className="p-1">{cents(t.delta)}</td>
-                <td className="p-1">{cents(t.projectedBalance)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <ul className="space-y-1">
+          {misc.map(m => (
+            <li key={m.id} className="flex justify-between border-b border-yellow-700 pb-1">
+              <span>{m.description}</span>
+              <span>{cents(m.amountCents)}</span>
+            </li>
+          ))}
+        </ul>
       </section>
     </div>
   );
