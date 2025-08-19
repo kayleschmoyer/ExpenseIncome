@@ -29,24 +29,6 @@ interface StoreState {
   deleteMisc: (id: string) => Promise<void>;
 }
 
-const days = [
-  'Sunday',
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-];
-
-function nextDateForDay(day: string) {
-  const target = days.indexOf(day);
-  const date = new Date();
-  const diff = (target - date.getDay() + 7) % 7;
-  date.setDate(date.getDate() + diff);
-  return date.toISOString().slice(0, 10);
-}
-
 export const useStore = create<StoreState>((set) => ({
   settings: undefined,
   incomeSources: [],
@@ -75,28 +57,26 @@ export const useStore = create<StoreState>((set) => ({
     set({ incomeSources, bills, misc });
   },
   addIncome: async (name, amountCents, schedule, when) => {
-    const startDate = schedule === 'oneoff' ? when : nextDateForDay(when);
     const entry: IncomeSource = {
       id: uuid(),
       name,
       amountCents,
       rrule: null,
       schedule,
-      startDate,
+      startDate: when,
       active: true,
     };
     await db.income_sources.add(entry);
     set((s) => ({ incomeSources: [...s.incomeSources, entry] }));
   },
   addBill: async (name, amountCents, schedule, when) => {
-    const startDate = schedule === 'oneoff' ? when : nextDateForDay(when);
     const entry: Bill = {
       id: uuid(),
       name,
       amountCents,
       rrule: null,
       schedule,
-      startDate,
+      startDate: when,
       active: true,
     };
     await db.bills.add(entry);
