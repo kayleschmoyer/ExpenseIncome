@@ -27,6 +27,10 @@ interface StoreState {
   deleteIncome: (id: string) => Promise<void>;
   deleteBill: (id: string) => Promise<void>;
   deleteMisc: (id: string) => Promise<void>;
+  updateIncome: (id: string, updates: Partial<IncomeSource>) => Promise<void>;
+  updateBill: (id: string, updates: Partial<Bill>) => Promise<void>;
+  skipIncomeOccurrence: (id: string, date: string) => Promise<void>;
+  skipBillOccurrence: (id: string, date: string) => Promise<void>;
 }
 
 export const useStore = create<StoreState>((set) => ({
@@ -64,6 +68,7 @@ export const useStore = create<StoreState>((set) => ({
       rrule: null,
       schedule,
       startDate: when,
+      exceptions: [],
       active: true,
     };
     await db.income_sources.add(entry);
@@ -77,6 +82,7 @@ export const useStore = create<StoreState>((set) => ({
       rrule: null,
       schedule,
       startDate: when,
+      exceptions: [],
       active: true,
     };
     await db.bills.add(entry);
@@ -103,5 +109,35 @@ export const useStore = create<StoreState>((set) => ({
   deleteMisc: async (id) => {
     await db.misc_spending.delete(id);
     set((s) => ({ misc: s.misc.filter((m) => m.id !== id) }));
+  },
+  updateIncome: async (id, updates) => {
+    await db.income_sources.update(id, updates);
+    set((s) => ({
+      incomeSources: s.incomeSources.map((i) => (i.id === id ? { ...i, ...updates } : i)),
+    }));
+  },
+  updateBill: async (id, updates) => {
+    await db.bills.update(id, updates);
+    set((s) => ({
+      bills: s.bills.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+    }));
+  },
+  skipIncomeOccurrence: async (id, date) => {
+    const entry = await db.income_sources.get(id);
+    if (!entry) return;
+    const exceptions = entry.exceptions ? [...entry.exceptions, date] : [date];
+    await db.income_sources.update(id, { exceptions });
+    set((s) => ({
+      incomeSources: s.incomeSources.map((i) => (i.id === id ? { ...i, exceptions } : i)),
+    }));
+  },
+  skipBillOccurrence: async (id, date) => {
+    const entry = await db.bills.get(id);
+    if (!entry) return;
+    const exceptions = entry.exceptions ? [...entry.exceptions, date] : [date];
+    await db.bills.update(id, { exceptions });
+    set((s) => ({
+      bills: s.bills.map((b) => (b.id === id ? { ...b, exceptions } : b)),
+    }));
   },
 }));
