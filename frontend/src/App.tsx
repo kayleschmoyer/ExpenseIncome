@@ -57,6 +57,10 @@ export default function App() {
     deleteIncome,
     deleteBill,
     deleteMisc,
+    updateIncome,
+    updateBill,
+    skipIncomeOccurrence,
+    skipBillOccurrence,
   } = useStore();
 
   useEffect(() => {
@@ -80,10 +84,14 @@ export default function App() {
   const [miscDate, setMiscDate] = useState('');
 
   const incomeOccurrences = incomeSources.flatMap(i =>
-    occurrences(i.startDate, i.schedule, month).map(date => ({ ...i, date }))
+    occurrences(i.startDate, i.schedule, month)
+      .filter(date => !(i.exceptions?.includes(date)))
+      .map(date => ({ ...i, date }))
   );
   const billOccurrences = bills.flatMap(b =>
-    occurrences(b.startDate, b.schedule, month).map(date => ({ ...b, date }))
+    occurrences(b.startDate, b.schedule, month)
+      .filter(date => !(b.exceptions?.includes(date)))
+      .map(date => ({ ...b, date }))
   );
   const miscForMonth = misc.filter(m => {
     const d = new Date(m.date);
@@ -93,6 +101,56 @@ export default function App() {
   const incomeValid = incomeName && incomeAmount && incomeWhen;
   const billValid = billName && billAmount && billWhen;
   const miscValid = miscDesc && miscAmount && miscDate;
+
+  function handleDeleteIncome(i: { id: string; date: string }) {
+    if (window.confirm('Delete entire series? Click cancel to delete only this occurrence.')) {
+      deleteIncome(i.id);
+    } else {
+      skipIncomeOccurrence(i.id, i.date);
+    }
+  }
+
+  function handleDeleteBill(b: { id: string; date: string }) {
+    if (window.confirm('Delete entire series? Click cancel to delete only this occurrence.')) {
+      deleteBill(b.id);
+    } else {
+      skipBillOccurrence(b.id, b.date);
+    }
+  }
+
+  function handleEditIncome(i: { id: string; date: string; name: string; amountCents: number; schedule: Schedule }) {
+    const applyFuture = window.confirm('Apply changes to this and future occurrences? Click cancel for this occurrence only.');
+    const name = prompt('Name', i.name);
+    const amt = prompt('Amount', (i.amountCents / 100).toString());
+    if (!name || !amt) return;
+    const amountCents = Math.round(parseFloat(amt) * 100);
+    if (applyFuture) {
+      const prevDay = new Date(i.date);
+      prevDay.setDate(prevDay.getDate() - 1);
+      updateIncome(i.id, { endDate: prevDay.toISOString().slice(0,10) });
+      addIncome(name, amountCents, i.schedule, i.date);
+    } else {
+      skipIncomeOccurrence(i.id, i.date);
+      addIncome(name, amountCents, 'oneoff', i.date);
+    }
+  }
+
+  function handleEditBill(b: { id: string; date: string; name: string; amountCents: number; schedule: Schedule }) {
+    const applyFuture = window.confirm('Apply changes to this and future occurrences? Click cancel for this occurrence only.');
+    const name = prompt('Name', b.name);
+    const amt = prompt('Amount', (b.amountCents / 100).toString());
+    if (!name || !amt) return;
+    const amountCents = Math.round(parseFloat(amt) * 100);
+    if (applyFuture) {
+      const prevDay = new Date(b.date);
+      prevDay.setDate(prevDay.getDate() - 1);
+      updateBill(b.id, { endDate: prevDay.toISOString().slice(0,10) });
+      addBill(name, amountCents, b.schedule, b.date);
+    } else {
+      skipBillOccurrence(b.id, b.date);
+      addBill(name, amountCents, 'oneoff', b.date);
+    }
+  }
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-10 text-yellow-400">
@@ -126,7 +184,8 @@ export default function App() {
               <span>{i.name} ({i.date})</span>
               <div className="flex items-center gap-2">
                 <span>{cents(i.amountCents)}</span>
-                <button className="text-red-500" onClick={() => deleteIncome(i.id)}>Delete</button>
+                <button className="text-blue-400" onClick={() => handleEditIncome(i)}>Edit</button>
+                <button className="text-red-500" onClick={() => handleDeleteIncome(i)}>Delete</button>
               </div>
             </li>
           ))}
@@ -156,7 +215,8 @@ export default function App() {
               <span>{b.name} ({b.date})</span>
               <div className="flex items-center gap-2">
                 <span>{cents(b.amountCents)}</span>
-                <button className="text-red-500" onClick={() => deleteBill(b.id)}>Delete</button>
+                <button className="text-blue-400" onClick={() => handleEditBill(b)}>Edit</button>
+                <button className="text-red-500" onClick={() => handleDeleteBill(b)}>Delete</button>
               </div>
             </li>
           ))}

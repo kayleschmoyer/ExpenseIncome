@@ -18,6 +18,7 @@ export interface IncomeSource {
   startDate: string;
   endDate?: string;
   tags?: string[];
+  exceptions?: string[];
   active: boolean;
 }
 
@@ -31,6 +32,7 @@ export interface Bill {
   endDate?: string;
   autopay?: boolean;
   tags?: string[];
+  exceptions?: string[];
   active: boolean;
 }
 
